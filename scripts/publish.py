@@ -160,29 +160,34 @@ def run_smoke_test() -> bool:
     return res.returncode == 0
 
 
-def push_release_tag(version: str) -> bool:
+def push_release_tag(version: str, force_push: bool = False) -> bool:
     tag = f"v{version}"
     log(f"Preparing to tag and push {tag} to trigger GitHub Actions release...", "🚀")
 
-    # Check if tag exists locally
-    res_local = subprocess.run(["git", "tag", "-l", tag], capture_output=True, text=True)
-    if tag in res_local.stdout.split():
-        log_error(f"Git tag '{tag}' already exists locally!")
-        return False
-
-    # Check if tag exists remotely
+    # Check remote tags
     res_remote = subprocess.run(
         ["git", "ls-remote", "--tags", "origin", tag],
         capture_output=True,
         text=True,
     )
-    if tag in res_remote.stdout:
+    remote_exists = tag in res_remote.stdout
+
+    # Check local tags
+    res_local = subprocess.run(["git", "tag", "-l", tag], capture_output=True, text=True)
+    local_exists = tag in res_local.stdout.split()
+
+    if remote_exists:
         log_error(f"Git tag '{tag}' already exists on origin!")
+        log_warn(f"If you need to re-trigger this release, delete the tag first:")
+        print(f"   git tag -d {tag}")
+        print(f"   git push --delete origin {tag}")
         return False
 
-    # Create tag
-    log(f"Creating git tag: {tag}")
-    run_cmd(["git", "tag", "-a", tag, "-m", f"Release {tag}"])
+    if not local_exists:
+        log(f"Creating git tag: {tag}")
+        run_cmd(["git", "tag", "-a", tag, "-m", f"Release {tag}"])
+    else:
+        log(f"Git tag '{tag}' already exists locally; proceeding to push...")
 
     # Push tag
     log(f"Pushing git tag '{tag}' to origin...")
