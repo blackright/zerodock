@@ -10,9 +10,15 @@ project-feautures*
 .agents/
 .specify/
 specs/
+Phase-Builder-Agent.md
+Specs-Dafting.md
+Troubleshoot.md
 
 # ZeroDock Local Runtime Storage & Cache
 .zerodock/
+
+# Logs & Diagnostics
+*.log
 
 # Python Bytecode & Cache
 __pycache__/
@@ -34,6 +40,8 @@ venv.bak/
 .ruff_cache/
 .coverage
 .coverage.*
+coverage.xml
+*.cover
 htmlcov/
 .nox/
 .tox/
@@ -45,6 +53,7 @@ dist/
 *.egg
 eggs/
 .eggs/
+*.whl
 
 # Environment Variables, Secrets & Local Credentials
 .env
