@@ -50,7 +50,11 @@ jobs:
     name: Clean-room wheel smoke test (${{ matrix.os }}, py${{ matrix.python-version }})
     needs: [build]
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ["3.10", "3.11", "3.12", "3.13"]
