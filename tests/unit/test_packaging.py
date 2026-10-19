@@ -34,7 +34,7 @@ def test_version_fallback_on_package_not_found() -> None:
         import importlib
         import zerodock as zd
         importlib.reload(zd)
-        assert zd.__version__ == "0.1.0"
+        assert zd.__version__ == "0.1.1"
 
 
 def test_pyproject_metadata_completeness() -> None:
@@ -51,7 +51,7 @@ def test_pyproject_metadata_completeness() -> None:
 
     project = data.get("project", {})
     assert project.get("name") == "zerodock"
-    assert project.get("version") == "0.1.0"
+    assert project.get("version") == "0.1.1"
     assert len(project.get("description", "")) > 10
     assert len(project.get("keywords", [])) >= 3
     assert len(project.get("classifiers", [])) >= 5

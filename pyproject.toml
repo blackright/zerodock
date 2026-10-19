@@ -1,6 +1,6 @@
 [project]
 name = "zerodock"
-version = "0.1.0"
+version = "0.1.1"
 description = "Zero-dependency, ultra-lightweight local execution engine for serverless cloud architectures."
 authors = [{ name = "ZeroDock Contributors", email = "contributors@zerodock.dev" }]
 readme = "README.md"
