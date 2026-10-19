@@ -2,6 +2,8 @@
 
 > **Zero-dependency, ultra-lightweight local execution engine that simulates serverless cloud architectures at the application layer using native asynchronous Python.**
 
+[![PyPI: zerodock](https://img.shields.io/pypi/v/zerodock.svg)](https://pypi.org/project/zerodock/)
+[![CI: Status](https://github.com/blackright/zerodock/actions/workflows/ci.yml/badge.svg)](https://github.com/blackright/zerodock/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python: 3.10+](https://img.shields.io/badge/Python-3.10%2B-brightgreen.svg)](https://www.python.org/)
 [![Startup: <100ms](https://img.shields.io/badge/Startup-%3C100ms-success.svg)](#)
@@ -34,22 +36,31 @@ It acts as a **"Docker-Compose without Docker"** tailored specifically for serve
 
 ---
 
-## 🚀 Quick Start (Local Setup)
+## 🚀 Quick Start
 
-### 1. Prerequisites
-Ensure you have **Python 3.10+** installed.
+### 📦 1. Installation via pip (Recommended)
 
-### 2. Installation
+Install ZeroDock directly from PyPI into your active virtual environment:
+```bash
+pip install zerodock
+```
+*(Or if using `uv`)*:
+```bash
+uv add zerodock
+```
+
+---
+
+### 💻 2. Installing from Source (For Contributors)
+
 Clone the repository and install dependencies:
 ```bash
-git clone https://github.com/your-username/zerodock.git
+git clone https://github.com/blackright/zerodock.git
 cd zerodock
-pip install -e .
+pip install -e ".[dev]"
 ```
-*(Or if using Poetry / uv)*:
+*(Or if using `uv`)*:
 ```bash
-poetry install
-# or
 uv sync
 ```
 
