@@ -1,12 +1,23 @@
 """Unit tests for package metadata, semantic versioning, and PEP 621 compliance."""
 
 import re
-import tomllib
+import sys
+from importlib.metadata import PackageNotFoundError
 from pathlib import Path
 from unittest.mock import patch
-from importlib.metadata import PackageNotFoundError
+
+import pytest
 
 import zerodock
+
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    try:
+        import tomli as tomllib
+    except ModuleNotFoundError:
+        tomllib = None  # type: ignore[assignment]
+
 
 
 def test_version_is_valid_semver() -> None:
@@ -28,6 +39,9 @@ def test_version_fallback_on_package_not_found() -> None:
 
 def test_pyproject_metadata_completeness() -> None:
     """pyproject.toml must contain all PEP 621 metadata fields required for PyPI."""
+    if tomllib is None:
+        pytest.skip("tomllib (Python 3.11+) or tomli is required to parse TOML")
+
     repo_root = Path(__file__).resolve().parent.parent.parent
     pyproject_path = repo_root / "pyproject.toml"
     assert pyproject_path.exists(), "pyproject.toml must exist in repo root"
