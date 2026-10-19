@@ -70,10 +70,15 @@ jobs:
           name: python-package-distributions
           path: dist/
 
+      - name: List downloaded artifacts
+        run: ls -la dist/
+
       - name: Install wheel into isolated environment
         run: |
-          pip install --upgrade pip
-          pip install dist/*.whl
+          python -m pip install --upgrade pip
+          WHEEL=$(python -c "import glob,sys; w=glob.glob('dist/*.whl'); sys.exit('No wheel found in dist/') if not w else print(w[0])")
+          echo "Installing $WHEEL"
+          python -m pip install "$WHEEL"
 
       - name: Verify CLI entrypoint and version
         run: |
