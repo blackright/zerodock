@@ -51,7 +51,8 @@ def test_clean_room_wheel_install_and_cli_execution() -> None:
         version_cmd = [sys.executable, "-m", "zerodock.cli", "--version"]
         res_version = subprocess.run(version_cmd, env=env, capture_output=True, text=True)
         assert res_version.returncode == 0, f"Version check failed: {res_version.stderr}"
-        assert "0.1.0" in res_version.stdout
+        wheel_version = wheel_path.stem.split("-")[1]
+        assert f"ZeroDock {wheel_version}" in res_version.stdout
 
         # 2. Test dev help command
         help_cmd = [sys.executable, "-m", "zerodock.cli", "dev", "--help"]
