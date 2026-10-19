@@ -12,7 +12,19 @@ if TYPE_CHECKING:
 try:
     __version__ = version("zerodock")
 except PackageNotFoundError:
-    __version__ = "0.1.1"
+    # In an uninstalled/development checkout, resolve version dynamically from pyproject.toml
+    try:
+        from pathlib import Path
+        import re
+
+        _pyproject = Path(__file__).resolve().parent.parent.parent / "pyproject.toml"
+        if _pyproject.exists():
+            _m = re.search(r'version\s*=\s*"([^"]+)"', _pyproject.read_text(encoding="utf-8"))
+            __version__ = _m.group(1) if _m else "0.0.0.dev0"
+        else:
+            __version__ = "0.0.0.dev0"
+    except Exception:
+        __version__ = "0.0.0.dev0"
 
 __all__ = [
     "__version__",

@@ -28,13 +28,23 @@ def test_version_is_valid_semver() -> None:
     assert re.match(r"^\d+\.\d+\.\d+", version) is not None
 
 
+def _get_pyproject_version() -> str:
+    repo_root = Path(__file__).resolve().parent.parent.parent
+    pyproject_path = repo_root / "pyproject.toml"
+    content = pyproject_path.read_text(encoding="utf-8")
+    m = re.search(r'version\s*=\s*"([^"]+)"', content)
+    assert m, "version not found in pyproject.toml"
+    return m.group(1)
+
+
 def test_version_fallback_on_package_not_found() -> None:
-    """If package is not installed, version fallback must return default version string."""
+    """If package is not installed, version fallback must resolve version from pyproject.toml."""
+    expected_version = _get_pyproject_version()
     with patch("importlib.metadata.version", side_effect=PackageNotFoundError):
         import importlib
         import zerodock as zd
         importlib.reload(zd)
-        assert zd.__version__ == "0.1.1"
+        assert zd.__version__ == expected_version
 
 
 def test_pyproject_metadata_completeness() -> None:
@@ -51,7 +61,8 @@ def test_pyproject_metadata_completeness() -> None:
 
     project = data.get("project", {})
     assert project.get("name") == "zerodock"
-    assert project.get("version") == "0.1.1"
+    assert re.match(r"^\d+\.\d+\.\d+", project.get("version", "")) is not None
+    assert project.get("version") == _get_pyproject_version()
     assert len(project.get("description", "")) > 10
     assert len(project.get("keywords", [])) >= 3
     assert len(project.get("classifiers", [])) >= 5
