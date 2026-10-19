@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "ZeroDock: Start Gateway (Debug)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "zerodock.cli",
+      "args": ["dev"],
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+    {
+      "name": "ZeroDock: Run All Tests",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["-v"],
+      "console": "integratedTerminal",
+      "justMyCode": true
+    }
+  ]
+}

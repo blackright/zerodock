@@ -1,0 +1,46 @@
+name: Good First Issue / Starter Task
+description: Template for curated onboarding issues friendly for new contributors
+title: "[STARTER]: "
+labels: ["good first issue", "help wanted"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Welcome to ZeroDock! 👋 This issue has been pre-scoped to be accessible and fun for first-time or newer contributors.
+  - type: textarea
+    id: overview
+    attributes:
+      label: Task Summary
+      description: What needs to be done?
+      placeholder: Clear summary of the feature or bug fix.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Background & Architecture Context
+      description: Relevant files, modules, and how this fits into ZeroDock.
+    validations:
+      required: true
+  - type: textarea
+    id: implementation-steps
+    attributes:
+      label: Step-by-Step Implementation Guide
+      description: Suggested step-by-step checklist to guide the contributor.
+      placeholder: |
+        1. Open `src/zerodock/...`
+        2. Implement `...`
+        3. Add unit test in `tests/unit/...`
+        4. Run `pytest`
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: What must pass for this PR to be merged?
+      placeholder: |
+        - [ ] Unit tests pass with `pytest`
+        - [ ] Code adheres to project coding style
+    validations:
+      required: true

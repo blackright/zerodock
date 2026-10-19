@@ -1,0 +1,68 @@
+# ==============================================================================
+# ZeroDock .gitignore
+# ==============================================================================
+
+# Internal Project Planning & Feature Documentation
+project-features*
+project-feautures*
+
+# Spec-Kit & Agent Infrastructure
+.agents/
+.specify/
+specs/
+
+# ZeroDock Local Runtime Storage & Cache
+.zerodock/
+
+# Python Bytecode & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Python Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# Testing, Coverage & Linters
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.nox/
+.tox/
+
+# Distribution, Packaging & Builds
+build/
+dist/
+*.egg-info/
+*.egg
+eggs/
+.eggs/
+
+# Environment Variables, Secrets & Local Credentials
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+!.env.example
+
+# IDEs & Editor Metadata
+.vscode/*
+!.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini
