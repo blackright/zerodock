@@ -6,7 +6,7 @@ import importlib.util
 import inspect
 import sys
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 
 class HandlerLoadError(Exception):
@@ -60,7 +60,7 @@ def load_handler(file_path: Path, handler_name: str) -> Callable[..., Any]:
             f"Target attribute '{handler_name}' in {resolved_path} is not callable."
         )
 
-    return handler_fn
+    return cast(Callable[..., Any], handler_fn)
 
 
 def invoke_handler(handler_fn: Callable[..., Any], event: dict, context: Any = None) -> Any:

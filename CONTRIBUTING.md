@@ -49,7 +49,7 @@ pytest
 ## 🎯 How to Contribute
 
 ### Finding Good First Issues
-Check our [GitHub Issues](https://github.com/your-username/zerodock/issues) tracker. Look for tickets tagged with:
+Check our [GitHub Issues](https://github.com/blackright/zerodock/issues) tracker. Look for tickets tagged with:
 - `good first issue`: Self-contained tasks perfect for new contributors.
 - `help wanted`: Features or enhancements ready to be claimed.
 
@@ -78,6 +78,30 @@ ZeroDock follows strict constitutional principles:
 4. Format code using `ruff`: `ruff check . --fix`
 5. Commit your changes: `git commit -m "feat: add S3 event transformer"`
 6. Push to your fork and open a Pull Request.
+
+---
+
+## 📦 Release & Publishing Workflow (For Maintainers)
+
+ZeroDock uses **PyPI Trusted Publishing** via OpenID Connect (OIDC). Releases are 100% automated via GitHub Actions:
+
+### 1. One-Time PyPI Configuration
+1. In [pypi.org](https://pypi.org) ➔ Account Settings ➔ **Publishing**.
+2. Add GitHub Publisher:
+   - Owner: `blackright`
+   - Repository: `zerodock`
+   - Workflow name: `publish.yml`
+   - Environment: `pypi`
+
+### 2. Making an Official Release
+1. Bump version in `pyproject.toml` (e.g., `0.1.0` ➔ `0.1.1`).
+2. Commit and push to `main`.
+3. Create and push a Git release tag:
+   ```bash
+   git tag v0.1.1
+   git push origin v0.1.1
+   ```
+4. GitHub Actions automatically builds the wheel, runs multi-OS smoke tests, and publishes directly to PyPI!
 
 ---
 
