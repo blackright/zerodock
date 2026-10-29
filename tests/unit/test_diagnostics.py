@@ -1,9 +1,10 @@
 """Unit tests for configuration pre-flight diagnostics and route validation."""
 
 from pathlib import Path
+
 import pytest
-from zerodock.config.models import RouteDefinition, ServerlessConfig
-from zerodock.config.parser import load_config, ConfigurationError
+
+from zerodock.config.parser import ConfigurationError, load_config
 
 
 def test_missing_handler_file_raises_diagnostic_error(tmp_path: Path):
@@ -29,10 +30,7 @@ def test_valid_file_passes_preflight(tmp_path: Path):
 
     good_config = tmp_path / "good_config.yaml"
     good_config.write_text(
-        "version: '1.0'\n"
-        "routes:\n"
-        f"  api/real:\n"
-        f"    file: './real_handler.py'\n",
+        "version: '1.0'\nroutes:\n  api/real:\n    file: './real_handler.py'\n",
         encoding="utf-8",
     )
 

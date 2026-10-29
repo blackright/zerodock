@@ -14,6 +14,7 @@ def test_format_error_response():
     assert resp.headers["content-type"] == "application/json"
 
     import json
+
     data = json.loads(resp.body.decode("utf-8"))
     assert data["error"] == "InternalServerError"
     assert data["exceptionType"] == "ValueError"
@@ -27,6 +28,7 @@ def test_format_timeout_response():
 
     assert resp.status_code == 504
     import json
+
     data = json.loads(resp.body.decode("utf-8"))
     assert data["error"] == "GatewayTimeout"
     assert "timed out after 15 seconds" in data["message"]

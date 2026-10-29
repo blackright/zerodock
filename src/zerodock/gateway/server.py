@@ -1,7 +1,7 @@
 """Embedded Uvicorn server runner for ZeroDock."""
 
-from pathlib import Path
 from typing import Optional
+
 import uvicorn
 
 from zerodock.config.parser import load_config
@@ -13,6 +13,8 @@ def run_server(
     host: Optional[str] = None,
     port: Optional[int] = None,
     log_level: Optional[str] = None,
+    *,
+    reload: bool = False,
 ) -> None:
     """Boots the ZeroDock local serverless HTTP gateway.
 
@@ -21,6 +23,7 @@ def run_server(
         host: Optional host override (e.g. '127.0.0.1').
         port: Optional port override (e.g. 8080).
         log_level: Optional log level override ('info', 'debug', etc.).
+        reload: Enable in-process handler observation without restarting Uvicorn.
     """
     config = load_config(config_path)
 
@@ -28,7 +31,7 @@ def run_server(
     bind_port = port or config.gateway.port
     server_log_level = log_level or config.gateway.log_level
 
-    app = create_app(config)
+    app = create_app(config, reload=reload)
 
     print(f"[ZeroDock] Booting local gateway on http://{bind_host}:{bind_port}")
     print(f"[ZeroDock] Loaded {len(config.routes)} registered route(s):")

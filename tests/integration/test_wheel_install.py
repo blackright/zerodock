@@ -1,7 +1,6 @@
-"""Integration test: Clean-room wheel installation and CLI verification in an isolated target directory."""
+"""Verify wheel installation and CLI execution in an isolated target directory."""
 
 import os
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -19,7 +18,7 @@ def get_latest_wheel(dist_dir: Path) -> Path:
 
 
 def test_clean_room_wheel_install_and_cli_execution() -> None:
-    """Verify that installing/unpacking the wheel into a clean site-packages enables the CLI without dev packages."""
+    """Verify the unpacked wheel enables the CLI without dev packages."""
     repo_root = Path(__file__).resolve().parent.parent.parent
     dist_dir = repo_root / "dist"
 
@@ -34,14 +33,18 @@ def test_clean_room_wheel_install_and_cli_execution() -> None:
             zf.extractall(site_packages)
 
         # Verify py.typed was unpacked
-        assert (site_packages / "zerodock" / "py.typed").exists(), "py.typed missing from unpacked wheel"
+        assert (site_packages / "zerodock" / "py.typed").exists(), (
+            "py.typed missing from unpacked wheel"
+        )
 
         # Verify entrypoint file was unpacked in dist-info
         dist_infos = list(site_packages.glob("zerodock-*.dist-info"))
         assert len(dist_infos) == 1, "Expected exactly 1 dist-info directory in wheel"
         entry_points_file = dist_infos[0] / "entry_points.txt"
         assert entry_points_file.exists(), "entry_points.txt missing from wheel"
-        assert "zerodock=zerodock.cli:main" in entry_points_file.read_text(encoding="utf-8").replace(" ", "")
+        assert "zerodock=zerodock.cli:main" in entry_points_file.read_text(
+            encoding="utf-8"
+        ).replace(" ", "")
 
         # Execute CLI using the clean site-packages via PYTHONPATH
         env = os.environ.copy()

@@ -1,8 +1,10 @@
 """Integration test verifying exception handling and gateway resilience."""
 
 from pathlib import Path
-import pytest
+
 import httpx
+import pytest
+
 from zerodock.config.models import RouteDefinition, ServerlessConfig
 from zerodock.gateway.app import create_app
 

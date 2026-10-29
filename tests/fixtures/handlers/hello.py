@@ -8,12 +8,9 @@ def lambda_handler(event, context=None):
 
     return {
         "statusCode": 200,
-        "headers": {
-            "Content-Type": "application/json",
-            "X-ZeroDock-Test": "True"
-        },
+        "headers": {"Content-Type": "application/json", "X-ZeroDock-Test": "True"},
         "body": {
             "message": f"Hello, {name}!",
-            "requestId": context.request_id if context else "unknown"
-        }
+            "requestId": context.request_id if context else "unknown",
+        },
     }

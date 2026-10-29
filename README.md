@@ -1,6 +1,6 @@
 # ⚡ ZeroDock
 
-> **Run serverless functions locally without Docker, heavy containers, or cloud deploy delays. Pure Python, sub-100ms startup.**
+> **Run Python serverless functions locally without Docker, heavy containers, or cloud deploy delays.**
 
 [![PyPI: zerodock](https://img.shields.io/pypi/v/zerodock.svg)](https://pypi.org/project/zerodock/)
 [![CI: Status](https://github.com/blackright/zerodock/actions/workflows/ci.yml/badge.svg)](https://github.com/blackright/zerodock/actions)
@@ -18,7 +18,7 @@ If you build serverless apps (like AWS Lambda, Google Cloud Functions, or Cloudf
 **ZeroDock takes a different approach:**
 Instead of running an entire virtual machine or container, it runs your Python handlers directly on your machine using Python's native `importlib` and an ultra-fast async HTTP gateway (built on FastAPI and Uvicorn).
 
-* ⚡ **Starts in <100ms** and uses less than 50MB of RAM.
+* ⚡ **Lightweight baseline:** current idle RSS must stay below **60MB** for the documented small workload; below **50MB** remains an optimization target. Engine startup targets <100ms, not a guaranteed whole-process readiness time.
 * 📦 **No Docker required** — pure, native Python.
 * 🐛 **Real breakpoints work** — drop `breakpoint()` into your handler and step through your code line by line in your terminal or IDE.
 * 📄 **Simple declarative config** — one small YAML file defines all your routes and handlers.
@@ -132,6 +132,7 @@ Response:
 | Command / Flag | What it does | Default |
 | :--- | :--- | :--- |
 | `zerodock dev` | Start the local serverless HTTP gateway | Uses `serverless-local.yaml` |
+| `zerodock dev --reload` | Watch configured handlers in the running gateway | Disabled by default |
 | `-p`, `--port <PORT>` | Change the listening port | `8080` (or config file value) |
 | `--host <HOST>` | Change the bind IP address | `127.0.0.1` |
 | `-c`, `--config <PATH>` | Path to your configuration YAML file | `serverless-local.yaml` |
@@ -145,6 +146,41 @@ python -m zerodock.cli dev
 ```
 
 ---
+
+## Baseline Resource Budget
+
+The approved memory acceptance limit is **<60,000,000 bytes current RSS** (decimal MB),
+with **<50,000,000 bytes** retained as an optimization target. This applies to one
+listening gateway with one GET route, one trivial handler file and config each no
+larger than 1KiB, no extra handler dependencies, and no attached debugger/profiler.
+Measure three fresh servers per reload mode: after the first valid response, idle
+250ms and collect three current RSS samples 100ms apart; every sample must pass.
+On Windows, measure the actual server PID's current working set, not peak or private
+memory. Report runtime/dependency versions and platform with results; untested
+environments are not covered by measurements on another runtime or OS.
+
+Earlier Windows measurements were roughly 50-55MB with the tested runtimes, exceeding
+the former 50MB gate. Those historical results are preserved. User handler imports,
+larger route sets and other workloads may use more memory. The amended memory budget
+does not waive dispatch, startup, quality or coverage requirements, and final feature
+acceptance remains under review. The memory requirement was explicitly amended;
+historical measurements are not retroactive passes under the old requirement.
+
+## Hot Reload (Development)
+
+```bash
+zerodock dev --reload --config serverless-local.yaml
+```
+
+Save a configured handler, wait for its invalidation log, then request its route again. The next request executes fresh source without restarting the process or changing its port. No extra watcher package is needed. This flag belongs to `dev`; `zerodock --reload` is not supported.
+
+The observer fingerprints only configured handler source paths, deduplicating shared files. It waits 100ms between scans. Detection within 500ms is the test target for small files on a normal local filesystem, not a promise for large projects, remote disks, or a blocked event loop.
+
+Reload mode handles same-size/same-timestamp edits, atomic replacement, and deletion/recreation after startup. Invalid code returns the existing error response rather than an old successful result; save valid code to recover. An already-running invocation may finish using its old callable. Missing files at startup still fail configuration validation.
+
+Both modes execute handler modules on every request; handler globals are not persistent application state. Without `--reload`, no observer starts and the existing loading path is preserved; this is not a promise that ordinary loading ignores edits.
+
+Only configured handlers are refreshed. Imported helpers, installed packages, configuration changes, and new routes may require a restart. Native `breakpoint()` and source tracebacks remain available. Shutdown drains outstanding file reads before releasing watcher resources; a hung filesystem can delay shutdown indefinitely. No production multi-worker coordination is provided.
 
 ## Writing Handlers: The Event & Context Objects
 
@@ -256,7 +292,7 @@ Here are the most common things developers encounter and how to fix them in seco
 ## 🗺️ Roadmap & What's Coming
 
 ZeroDock is actively developed! Here is what is on the roadmap:
-* **🔥 Hot-Reloading File Watcher (Sprint 2):** Automatically reload handlers when you save `.py` files without restarting the server.
+* **🔥 Handler hot reload:** Implemented locally with `zerodock dev --reload`; final performance and cross-platform acceptance remain under review.
 * **🔐 Local Secrets & `.env` Loader (FEAT-008):** Automatically inject environment variables into your handlers from `.env` files.
 * **☁️ Full Cloud Adapters (FEAT-005 - FEAT-007):** AWS Lambda full context emulation, Cloudflare Workers Fetch API, and Google Cloud Functions CloudEvents.
 * **🗄️ Local Cloud Service Mocks (FEAT-009 - FEAT-012):** In-memory S3 bucket and DynamoDB/KV stores.
