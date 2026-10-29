@@ -1,33 +1,33 @@
-# [FEAT-010] Mock Local Object Storage (S3 / File System Adapter)
+# FEAT-010: Local Object Storage Mock
 
-**Labels**: `good first issue`, `help wanted`, `enhancement`, `cloud-mock`
+**Status**: Proposal; not implemented or approved for coding by this document.
+**Suggested labels**: enhancement, cloud-mock.
 
-## 🎯 Task Summary
-Add an ultra-lightweight local object storage mock simulator that allows serverless functions to read and write files to a simulated "S3 Bucket" using local disk storage in `.zerodock/buckets/`.
+## User problem
 
-## 💡 Background & Architecture
-Many serverless functions upload or download images, PDFs, or data blobs from AWS S3 or Google Cloud Storage. Instead of running heavy Docker containers like MinIO or LocalStack, ZeroDock can simulate an S3 bucket interface at the application layer:
-- Buckets are represented as subdirectories inside `.zerodock/buckets/<bucket-name>/`.
-- Files are stored as standard local files.
-- Provides a mock S3 client class or simulated REST endpoint compatible with standard `boto3` or `s3fs`.
+Developers need a lightweight way to test object reads/writes locally without
+requiring a cloud account or an external storage emulator.
 
-## 📋 Suggested Implementation Steps
-1. Create `src/zerodock/plugins/storage.py`:
-   - Implement `LocalStorageMock(base_dir: Path)` with methods:
-     - `put_object(bucket: str, key: str, body: bytes) -> dict`
-     - `get_object(bucket: str, key: str) -> bytes`
-     - `list_objects(bucket: str) -> list[str]`
-2. Add optional configuration support in `serverless-local.yaml`:
-   ```yaml
-   storage:
-     buckets:
-       - user-uploads
-       - reports
-   ```
-3. Add unit test in `tests/unit/test_storage_mock.py` verifying put, get, and list operations.
+## Proposed scope
 
-## ✅ Acceptance Criteria
-- [ ] Storing an object writes the file cleanly to `.zerodock/buckets/<bucket>/<key>`.
-- [ ] Retrieving an object returns the exact original bytes and mime type.
-- [ ] Clean error handling if a requested object or bucket does not exist.
-- [ ] Unit tests pass with `pytest`.
+Provide a local storage integration for named buckets and object keys, backed by
+project-local runtime storage. Basic put, get and list behavior should be isolated
+from the core loader and HTTP dispatcher.
+
+Provider-SDK compatibility, a REST API, MIME/metadata behavior, bucket creation,
+overwrite rules and missing-object errors require an approved contract before
+implementation. Do not imply that existing ZeroDock YAML accepts a storage section
+or that a boto3-compatible client already exists.
+
+## Design and validation requirements
+
+- Inspect existing extension boundaries before choosing a new API.
+- Define bucket/key validation and prevent paths escaping the approved storage root.
+- Specify returned bytes and metadata without inventing provider-parity claims.
+- Keep runtime data and credentials out of source control.
+- Test writes, reads, listings, missing resources, invalid paths and cleanup with
+  disposable storage.
+- Request approval before adding a dependency, public endpoint or YAML field.
+
+See [the roadmap](../../docs/roadmap.md) and
+[contribution guidance](../../CONTRIBUTING.md) before planning this work.

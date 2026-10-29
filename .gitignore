@@ -16,6 +16,7 @@
 
 # Publish the reviewed feature/follow-up documents, not unrelated private drafts
 /specs/*
+!/specs/README.md
 !/specs/003-handler-hot-reload/
 !/specs/004-performance-remediation/
 
