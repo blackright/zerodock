@@ -1,226 +1,162 @@
-# 🛠️ ZeroDock Troubleshooting & Diagnostic Guide
+# Troubleshooting ZeroDock
 
-This guide covers common errors, platform-specific quirks (especially on Windows), and debugging tips to help you get unstuck in seconds.
+Start with the smallest reproducible configuration and one handler. Keep the server
+terminal visible and confirm which Python environment is running the command.
 
----
+## Command not found
 
-## 📌 Quick Diagnosis Index
+If `zerodock` is not on PATH, use the interpreter where the package was installed:
 
-1. [Windows: `zerodock : The term 'zerodock' is not recognized`](#1-windows-zerodock--the-term-zerodock-is-not-recognized)
-2. [Port Already in Use (`Errno 98` / `Errno 10048`)](#2-port-already-in-use-errno-98--errno-10048)
-3. [`ConfigurationError: Could not find configuration file: serverless-local.yaml`](#3-configurationerror-could-not-find-configuration-file)
-4. [`HandlerLoadError: Handler file './functions/...' not found`](#4-handlerloaderror-handler-file-not-found)
-5. [`HandlerLoadError: Function '...' not found in module`](#5-handlerloaderror-function-not-found-in-module)
-6. [Handler Returning 500 Internal Server Error](#6-handler-returning-500-internal-server-error)
-7. [Debugging with Breakpoints](#7-debugging-with-breakpoints)
-8. [JSON Serialization Errors in Handler Responses](#8-json-serialization-errors-in-handler-responses)
-
----
-
-## 1. Windows: `zerodock : The term 'zerodock' is not recognized`
-
-### The Problem
-When installing packages globally via `pip install zerodock` in PowerShell or CMD on Windows, you might see this pip warning:
-```text
-WARNING: The script zerodock.exe is installed in 'C:\Users\<YourUser>\AppData\Local\...\Scripts' which is not on PATH.
-```
-And trying to run `zerodock` results in:
-```text
-zerodock : The term 'zerodock' is not recognized as the name of a cmdlet, function, script file, or operable program.
-```
-
-### Why it happens
-Python installs `.exe` CLI wrapper tools into its user `Scripts` directory. If Windows doesn't have that directory in your `PATH` environment variable, PowerShell cannot find the command.
-
-### The Solutions
-
-#### Solution A: Run via Python Module (Works instantly everywhere)
-You don't need to change any settings. Simply run:
-```powershell
+```bash
+python -m zerodock.cli --version
 python -m zerodock.cli dev
 ```
 
-#### Solution B: Use a Virtual Environment (Recommended Python Best Practice)
-Virtual environments keep your computer clean and automatically register the `Scripts` folder in your active terminal:
+If Python reports that the module is missing, activate the intended environment or
+use its executable directly. For example, in Windows PowerShell:
+
 ```powershell
-# Create and activate virtual environment
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-
-# Install and run
-pip install zerodock
-zerodock dev
+& './.venv/Scripts/python.exe' -m zerodock.cli dev
 ```
 
-#### Solution C: Add Python Scripts to your Windows PATH
-To make `zerodock` work anywhere in any terminal window permanently:
-1. Open PowerShell and run this one-liner:
-   ```powershell
-   [Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", "User") + ";$env:LOCALAPPDATA\Python\pythoncore-3.14-64\Scripts", "User")
-   ```
-2. Close and reopen your terminal.
+Avoid adding a guessed, version-specific directory to your permanent PATH.
+[Contributor setup](CONTRIBUTING.md#development-environment) explains activation.
 
----
+## Configuration file not found
 
-## 2. Port Already in Use (`Errno 98` / `Errno 10048`)
+The default configuration path is `serverless-local.yaml` in the current working
+directory. Supply the correct path when running elsewhere:
 
-### The Problem
-```text
-ERROR:    [Errno 10048] error while attempting to bind on address ('127.0.0.1', 8080): only one usage of each socket address is normally permitted
-```
-
-### Why it happens
-Another process running on your machine (like Docker, an existing Python server, or another background service) is already listening on port `8080`.
-
-### The Solution
-You can override the port on the fly without touching your code:
 ```bash
-zerodock dev --port 8081
-```
-Or update `serverless-local.yaml`:
-```yaml
-gateway:
-  host: "127.0.0.1"
-  port: 8081
+python -m zerodock.cli dev --config ./configs/serverless-local.yaml
 ```
 
----
+The current parser reports `Configuration file not found at: ...`.
+Handler paths inside the YAML are resolved relative to that YAML file's directory.
 
-## 3. `ConfigurationError: Could not find configuration file`
+## Handler file missing at startup
 
-### The Problem
-```text
-zerodock.config.parser.ConfigurationError: Could not find configuration file: serverless-local.yaml
+Every configured target file must exist before startup. Check the path relative to
+the configuration directory and ensure the quickstart does not reference files you
+have not created.
+
+A file deleted after a reload-enabled server starts is a different case: requests
+to that route fail until valid source is recreated. The server can then recover
+without restarting.
+
+## Port already in use
+
+Choose an available port:
+
+```bash
+python -m zerodock.cli dev --port 8081
 ```
 
-### Why it happens
-ZeroDock looks for `serverless-local.yaml` in your **current working directory** (the folder where you ran the command).
+Do not terminate an unfamiliar process merely because it owns the old port.
+If investigating a process, verify its identity and ownership first.
 
-### The Solution
-* Either `cd` into the folder containing your YAML file:
-  ```bash
-  cd my-project
-  zerodock dev
-  ```
-* Or pass the path directly with `--config`:
-  ```bash
-  zerodock dev --config ./configs/serverless-local.yaml
-  ```
+## Reload flag not recognized
 
----
+Check the environment's actual options:
 
-## 4. `HandlerLoadError: Handler file not found`
-
-### The Problem
-```text
-zerodock.engine.loader.HandlerLoadError: Handler file './functions/my_handler.py' not found.
+```bash
+python -m zerodock.cli dev --help
 ```
 
-### Why it happens
-The relative path specified in your `file:` entry doesn't exist relative to where you launched ZeroDock.
+The syntax is `dev --reload`, not a top-level `--reload`. If the option is absent,
+the installed release may predate the checkout's implementation. Follow the
+[installation guidance](README.md#installation-and-release-status) for current source.
 
-### The Solution
-1. Verify the file exists.
-2. Ensure the relative path in `serverless-local.yaml` matches:
-   ```yaml
-   routes:
-     api/my-endpoint:
-       file: "./functions/my_handler.py"   # <-- Check this path
-       handler: "lambda_handler"
-       methods: ["GET"]
-   ```
+## A saved change is not visible
 
----
+1. Confirm the server started with `dev --reload`.
+2. Confirm the edited file is a configured handler, not just an imported helper.
+3. Wait for the invalidation log before asserting the next response is fresh.
+4. Check for syntax/import errors, the correct callable name, and unreadable files.
+5. Restart for changed configuration, new routes, or imported-helper changes.
 
-## 5. `HandlerLoadError: Function not found in module`
+Do not recursively delete caches or remove unrelated modules as a workaround.
+See [the reload contract](docs/hot-reload.md).
 
-### The Problem
-```text
-zerodock.engine.loader.HandlerLoadError: Function 'handle_request' not found in module './functions/api.py'.
-```
+## Request returns HTTP 500
 
-### Why it happens
-ZeroDock successfully found and imported your Python file, but the file doesn't contain a function named `handle_request`.
+Handler execution, import, entrypoint, or response conversion may have failed.
+The development response uses this shape; values vary by exception:
 
-### The Solution
-Open your Python file and make sure the function name matches your YAML config:
-```python
-# functions/api.py
-def handle_request(event, context):   # <-- Name must match YAML 'handler:'
-    return {"statusCode": 200, "body": {"ok": True}}
-```
-
----
-
-## 6. Handler Returning 500 Internal Server Error
-
-### The Problem
-Calling your endpoint returns:
 ```json
 {
   "error": "InternalServerError",
-  "message": "KeyError: 'user_id'",
-  "type": "KeyError"
+  "exceptionType": "HandlerLoadError",
+  "message": "Diagnostic message",
+  "requestId": "zd-req-example"
 }
 ```
 
-### Why it happens
-Your function raised an uncaught Python exception. 
+Read the server traceback and fix the original failure. A valid save can recover
+under reload without a stale-success fallback. Error details can expose sensitive
+information: do not serve this development gateway to untrusted clients.
 
-### How to diagnose
-Look at your terminal where `zerodock dev` is running! ZeroDock prints the **full, unedited Python traceback** including the exact line number that crashed, just like running a normal Python script.
+## Request returns HTTP 504 or blocks the gateway
 
----
+Awaited asynchronous handler execution is subject to the configured timeout.
+Blocking synchronous work executes inline and cannot be forcibly interrupted by
+that asynchronous timeout. It can also delay other requests and file observation.
 
-## 7. Debugging with Breakpoints
+The context's memory-limit value is metadata, not an enforced operating-system
+memory limit. See [handler execution limits](docs/handlers.md#execution-limits).
 
-Because ZeroDock runs your code directly on your computer's native Python process, you don't need any complex remote debugging configurations.
+## Request-body or query-parameter errors
 
-### In Terminal (`pdb`)
-Add `breakpoint()` anywhere in your code:
+`event["body"]` is a string or `None`, not an automatically parsed JSON object.
+Decode JSON explicitly and account for `isBase64Encoded` when handling binary data.
+
+Query parameters may be `None`. Use:
+
 ```python
-def lambda_handler(event, context):
-    user_id = event.get("queryStringParameters", {}).get("id")
-    breakpoint()  # Execution will halt right here!
-    return {"statusCode": 200, "body": {"user": user_id}}
-```
-When you make an HTTP request to this endpoint, your terminal will immediately halt and present you with the interactive Python debugger prompt (`(Pdb)`).
-
-### In VS Code
-1. Open your project in VS Code.
-2. Click to the left of any line number in your handler file to set a standard red breakpoint dot.
-3. In VS Code's Run & Debug tab, run `Python Debugger: Current File` or attach to process.
-
----
-
-## 8. JSON Serialization Errors in Handler Responses
-
-### The Problem
-```text
-TypeError: Object of type datetime is not JSON serializable
+parameters = event.get("queryStringParameters") or {}
+name = parameters.get("name", "World")
 ```
 
-### Why it happens
-Standard JSON does not natively support non-primitive Python types like `datetime`, `UUID`, or custom classes.
+The method is in `event["requestContext"]["http"]["method"]`; the current event does
+not provide the older documented `httpMethod` field.
+See [the event reference](docs/handlers.md#event-reference).
 
-### The Solution
-Convert them to strings or ISO formats before returning:
+## Breakpoint does not stop execution
+
+Run the gateway under the intended interpreter/debugger and send a request to the
+configured handler. Merely opening a file or placing a visual breakpoint does not
+attach an IDE debugger to an already-running process.
+
+Check `PYTHONBREAKPOINT` and your IDE configuration if built-in breakpoints are
+disabled. Continue from the debugger before expecting the request to finish.
+[Debugging guidance](docs/hot-reload.md#debugging) includes terminal and IDE setup.
+
+## Shutdown appears stuck
+
+An active request, paused debugger, or outstanding file read can delay shutdown.
+Reload cleanup drains its owned file observation; it does not forcibly cancel a
+hung filesystem operation. Do not assume cancelling an await terminated a worker.
+
+Resume paused debugging first. Record the filesystem, runtime, last log messages,
+and a minimal reproduction if the server still cannot stop normally.
+
+## JSON response serialization fails
+
+Return JSON-compatible objects. Convert values such as datetimes explicitly:
+
 ```python
-from datetime import datetime
+from datetime import datetime, timezone
 
 def lambda_handler(event, context):
-    return {
-        "statusCode": 200,
-        "body": {
-            "timestamp": datetime.utcnow().isoformat()  # <-- String format
-        }
-    }
+    return {"timestamp": datetime.now(timezone.utc).isoformat()}
 ```
 
----
+## Reporting a problem
 
-## 💬 Still Stuck?
+Include versions, sanitized configuration, a minimal handler, exact commands,
+expected/actual results, and redacted logs. Never attach credentials, complete
+environment dumps, or private request payloads.
 
-If you run into an issue that isn't listed here, we're here to help:
-* Open an issue or discussion on our GitHub repo: [https://github.com/blackright/zerodock/issues](https://github.com/blackright/zerodock/issues)
-* Include your `serverless-local.yaml` and the terminal error output.
+Use the [issue tracker](https://github.com/blackright/zerodock/issues).
+For performance reports, include the boundaries and workload described in
+[Performance and validation](docs/performance.md).

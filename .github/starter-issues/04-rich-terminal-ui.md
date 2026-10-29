@@ -1,29 +1,30 @@
-# [FEAT-014] Rich Terminal UI (TUI) & Live Performance Monitor
+# FEAT-014: Terminal Dashboard and Request Metrics
 
-**Labels**: `good first issue`, `help wanted`, `enhancement`, `cli-tui`
+**Status**: Proposal; the current CLI uses its existing textual logging.
+**Suggested labels**: enhancement, cli-tui.
 
-## 🎯 Task Summary
-Make the ZeroDock startup and request logging gorgeous! Build a colorful terminal dashboard using the `rich` library that displays registered routes in a table, prints live color-coded HTTP status codes, and shows real-time handler execution latency.
+## User problem
 
-## 💡 Background & Architecture
-Developers love clear, beautiful CLI tools (like Vite, Next.js, and FastAPI). When `zerodock dev` starts, instead of plain uncolored text, it can display:
-- A banner with version, host, and port.
-- A clean markdown table of all registered HTTP routes, methods, and target files.
-- Each incoming request formatted with color badges:
-  - 🟢 `200 OK` in green with execution duration (e.g., `4.2ms`)
-  - 🟡 `404 Not Found` in yellow
-  - 🔴 `500 Server Error` in bold red
+Developers need clear startup, route and request information without overwhelming
+normal terminal output or breaking automation.
 
-## 📋 Suggested Implementation Steps
-1. Create `src/zerodock/cli_ui.py`:
-   - Implement `render_startup_banner(config: GatewayConfig) -> None` using `rich.console.Console` and `rich.table.Table`.
-   - Implement `render_request_log(method: str, path: str, status: int, duration_ms: float) -> None`.
-2. Connect the UI logger to the FastAPI middleware in `src/zerodock/gateway/app.py`.
-3. Add a `--no-color` or `--plain` flag in `cli.py` for headless CI environments.
-4. Add unit test in `tests/unit/test_cli_ui.py`.
+## Proposed scope
 
-## ✅ Acceptance Criteria
-- [ ] Registered routes are displayed in a formatted table on startup.
-- [ ] Incoming requests log status codes and execution times in milliseconds with appropriate colors.
-- [ ] Gracefully falls back to plain text if terminal does not support ANSI colors or when `--plain` is passed.
-- [ ] Unit tests pass with `pytest`.
+Consider a readable route summary and request timing/status presentation. Optional
+color or dashboard behavior must preserve ordinary redirected/headless output.
+
+A rendering dependency, new flags, metrics definitions and logging integration need
+an approved design. In particular, `--plain` and `--no-color` are not current CLI
+options and must not be documented as available.
+
+## Design and validation requirements
+
+- Reuse existing log levels, startup data and response diagnostics.
+- Define what timing includes before labeling a value as handler or dispatch latency.
+- Never log secrets, source text or request bodies to make output more informative.
+- Keep terminal capabilities, accessibility and non-interactive output in scope.
+- Test route summaries, status formatting, disabled/colorless behavior and overhead.
+- Request approval before adding dependencies or changing public command options.
+
+See [the roadmap](../../docs/roadmap.md) and
+[performance requirements](../../docs/performance.md).

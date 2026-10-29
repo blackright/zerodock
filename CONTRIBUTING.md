@@ -1,109 +1,123 @@
 # Contributing to ZeroDock
 
-Thank you for your interest in contributing to **ZeroDock**! 
+Contributions should solve a clearly scoped problem, preserve existing behavior,
+and include evidence that the change works.
 
-ZeroDock is built by developers, for developers. Our architecture is explicitly designed so you can contribute an isolated feature (like a new cloud event transformer or local mock) without needing to understand the entire engine.
+## Before starting
 
----
+Read the [architecture](docs/architecture.md), [roadmap](docs/roadmap.md),
+[performance requirements](docs/performance.md), and
+[project constitution](.specify/memory/constitution.md).
 
-## 🧭 Code of Conduct
+Check the implementation and existing tests before proposing a new component.
+State what you will reuse, replace, and preserve. Discuss new dependencies,
+architecture changes, or changes to acceptance limits before implementing them.
 
-We are committed to providing a friendly, welcoming, and inclusive environment for everyone. Please treat all community members with respect and kindness.
+Treat other contributors respectfully and keep reviews focused on the work.
 
----
+## Development environment
 
-## 🛠️ Local Development Setup
+The package declares Python 3.10+. The current validation record covers particular
+Windows/Python builds, not a completed support matrix. The pinned development
+snapshot also includes dependencies that require Python 3.11 or later.
+See [the validation matrix](docs/performance.md#validation-record).
 
-### 1. Prerequisites
-- Python 3.10 or higher
-- Git
+In a cloned checkout:
 
-### 2. Fork and Clone
-```bash
-git clone https://github.com/your-username/zerodock.git
-cd zerodock
-```
-
-### 3. Set Up Your Environment
-Create a virtual environment and install development dependencies:
 ```bash
 python -m venv .venv
-
-# On Linux/macOS:
-source .venv/bin/activate
-
-# On Windows:
-.venv\Scripts\activate
-
-pip install -e ".[dev]"
 ```
 
-### 4. Run the Test Suite
-Tests must pass before submitting a Pull Request:
+Activate it in PowerShell:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+Or on macOS/Linux:
+
 ```bash
-pytest
+source .venv/bin/activate
 ```
 
----
+Install the editable package and existing development dependencies:
 
-## 🎯 How to Contribute
+```bash
+python -m pip install -e ".[dev]"
+```
 
-### Finding Good First Issues
-Check our [GitHub Issues](https://github.com/blackright/zerodock/issues) tracker. Look for tickets tagged with:
-- `good first issue`: Self-contained tasks perfect for new contributors.
-- `help wanted`: Features or enhancements ready to be claimed.
+Do not change a shared environment or install additional tools without the applicable
+maintainer approval. Use a separate environment for runtime comparisons.
 
-### Proposing a New Feature
-1. Open an issue with the label `feature-proposal`.
-2. Briefly describe the problem, proposed solution, and sample `serverless-local.yaml` usage.
-3. Wait for feedback from maintainers before writing a major PR.
+## Checks before review
 
----
+Run checks sequentially when collecting performance results:
 
-## 📋 Architectural Guidelines
+```bash
+python -m pytest tests/unit tests/integration
+python -m ruff check src/zerodock tests
+python -m ruff format --check src/zerodock tests
+python -m mypy src/zerodock tests
+```
 
-ZeroDock follows strict constitutional principles:
-1. **Speed & Featherweight Footprint**: The engine MUST boot in <100ms and keep baseline actual listening-server idle RSS below 60 decimal MB (60,000,000 bytes); <50MB remains an optimization target. Follow the constitution's one-route/small-handler workload, three fresh processes per reload mode, and current-RSS sampling protocol. Report the tested environment; do not promise the baseline limit for arbitrary handler imports. Do not introduce heavy background daemons or Docker dependencies.
-2. **Native Execution**: Code runs directly in Python via `importlib`. Breakpoints (`breakpoint()`) must always work.
-3. **Decoupled Plugins**: Event transformers and mock services should be isolated modules in `src/zerodock/` with standalone tests.
-4. **Test-Driven Quality**: Every new feature must include unit tests and authentic payload fixtures in `tests/`.
+`ruff check` is the linter; `ruff format` is the formatter. Inspect any proposed
+automatic fix before applying it. Do not suppress findings or relax tests to obtain
+a passing result.
 
----
+The wheel-install smoke test uses a prebuilt wheel and may skip if none exists.
+A smoke test against an old wheel does not prove that current source was packaged.
+Build/release validation requires a separately reviewed artifact.
 
-## 🚀 Submitting a Pull Request (PR)
+## Tests and evidence
 
-1. Create a feature branch: `git checkout -b feat/my-new-feature`
-2. Write clean, readable code with type hints.
-3. Ensure all tests pass: `pytest`
-4. Format code using `ruff`: `ruff check . --fix`
-5. Commit your changes: `git commit -m "feat: add S3 event transformer"`
-6. Push to your fork and open a Pull Request.
+- Write a regression test before changing behavior; retain meaningful red/green evidence.
+- Use temporary handlers and configurations. Tests must not modify real project handlers.
+- Enter application lifespan explicitly in in-process HTTP tests that exercise reload.
+- Use event/barrier synchronization for races and cleanup, not guessed sleep durations.
+- Keep timing acceptance separate from debugging, tracing, coverage, and profiling.
+- Maintain more than 90% statement coverage for touched core logic; report the tool,
+  denominator, exclusions, and whether branch coverage was measured.
+- Report failed and untested environments honestly. A favorable rerun does not erase
+  an earlier failure or establish its cause.
 
----
+The existing validation used Python's standard-library tracing tool for loader and
+watcher statement coverage; no coverage package is required at runtime.
+Do not infer current results from historical reports.
 
-## 📦 Release & Publishing Workflow (For Maintainers)
+## Architectural boundaries
 
-ZeroDock uses **PyPI Trusted Publishing** via OpenID Connect (OIDC). Releases are 100% automated via GitHub Actions:
+Preserve native execution, configuration-relative paths, handler identity,
+per-request module execution, and ownership-safe cleanup. Keep optional integrations
+separate from the loader and HTTP dispatch path.
 
-### 1. One-Time PyPI Configuration
-1. In [pypi.org](https://pypi.org) ➔ Account Settings ➔ **Publishing**.
-2. Add GitHub Publisher:
-   - Owner: `blackright`
-   - Repository: `zerodock`
-   - Workflow name: `publish.yml`
-   - Environment: `pypi`
+The baseline memory gate is below 60,000,000 bytes of current listening-server RSS;
+below 50,000,000 bytes is an optimization target. Startup, dispatch, and detection
+limits remain separate. The precise protocol is in [Performance](docs/performance.md).
 
-### 2. Making an Official Release
-1. Bump version in `pyproject.toml` (e.g., `0.1.0` ➔ `0.1.1`).
-2. Commit and push to `main`.
-3. Create and push a Git release tag:
-   ```bash
-   git tag v0.1.1
-   git push origin v0.1.1
-   ```
-4. GitHub Actions automatically builds the wheel, runs multi-OS smoke tests, and publishes directly to PyPI!
+## Pull requests and issue tracking
 
----
+1. Agree on scope and identify the issue being addressed.
+2. Make focused changes, including documentation and tests for changed behavior.
+3. Run the relevant checks and disclose remaining failures or unsupported environments.
+4. Review the staged diff, including generated files and secrets.
+5. Open a pull request with a summary, test evidence, limitations, and linked issues.
 
-## 💬 Getting Help
-If you get stuck or have questions, feel free to open a Discussion on GitHub or comment directly on the issue you're working on. We're happy to guide you!
+Use closing keywords only for issues the pull request actually delivers. Document
+any approved follow-up rather than describing deferred work as fixed.
+The [push guide](PUSH-GUIDE.md) covers the hot-reload delivery and its separate
+performance follow-up.
+
+The local coding-agent workflow prohibits the agent from running Git commands.
+Human contributors manage branching, staging, commits, pushing, and merging.
+
+## Releases
+
+Release instructions and workflow limitations are maintained in
+[the release guide](docs/releasing.md). Do not publish, create tags, or change
+credentials as part of ordinary feature validation.
+
+## Getting help
+
+Use the [issue tracker](https://github.com/blackright/zerodock/issues) for actionable
+reports and proposals. Include a minimal sanitized reproduction, runtime and package
+versions, commands, expected/actual behavior, and relevant redacted output.

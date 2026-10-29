@@ -1,28 +1,31 @@
-# [FEAT-008] Local Environment & Secrets Loader (.env.local)
+# FEAT-008: Local Environment and Secrets Loader
 
-**Labels**: `good first issue`, `help wanted`, `enhancement`, `developer-experience`
+**Status**: Proposal; automatic environment-file loading is not current behavior.
+**Suggested labels**: enhancement, developer-experience.
 
-## 🎯 Task Summary
-Implement automatic parsing and injection of local environment variables and secrets from `.env.local` or `.env` files into the function runtime environment, keeping secrets safe from git commits.
+## User problem
 
-## 💡 Background & Architecture
-In production, cloud functions access secrets via AWS Secrets Manager, SSM Parameter Store, or cloud environment variables. Locally, developers store their API keys and test database passwords in `.env.local` files.
-ZeroDock should:
-1. Automatically look for `.env.local` or `.env` files in the workspace root.
-2. Safely parse them without overriding already-set system environment variables (unless configured).
-3. Inject the values into `os.environ` or the `event["stageVariables"]` payload before invoking the function handler.
+Developers need predictable local configuration without placing secrets in code
+or accidentally publishing them.
 
-## 📋 Suggested Implementation Steps
-1. Create `src/zerodock/config/secrets.py`:
-   - Implement `load_local_env(env_file_path: Path | None = None) -> dict[str, str]`:
-     - Reads key-value pairs (ignoring comments `#` and blank lines).
-     - Returns parsed dictionary.
-2. In `src/zerodock/engine/context.py`, ensure loaded secrets are accessible via `InvocationContext.client_context` or stage variables.
-3. Add `.env.local` and `.env` to `.gitignore` (already done).
-4. Add unit test in `tests/unit/test_secrets_loader.py` validating that keys are correctly parsed and loaded.
+## Proposed scope
 
-## ✅ Acceptance Criteria
-- [ ] `.env.local` file is loaded at startup if present.
-- [ ] Serverless handlers can access variables via `os.environ` or context.
-- [ ] No crash if `.env.local` file does not exist (graceful fallback).
-- [ ] Unit tests pass with `pytest`.
+Load an explicitly defined set of local environment-file values for development.
+Discovery order, parsing/quoting rules, precedence, process-environment mutation,
+reload behavior and error handling require review before implementation.
+
+The existing event/context contract does not provide a documented secrets store
+or stage-variables interface. Do not add those fields implicitly or describe this
+proposal as an existing cloud secrets-manager emulator.
+
+## Design and validation requirements
+
+- Preserve existing environment variables by the agreed precedence policy.
+- Keep secrets out of logs, diagnostics, tests and committed examples.
+- Define missing-file behavior, malformed values and platform encoding rules.
+- Test parsing, precedence, missing files, errors and restoration with synthetic values.
+- Use the existing ignore policy as one safeguard, not a substitute for secret review.
+- Request approval before adding dependencies, configuration fields or runtime hooks.
+
+See [security guidance](../../docs/security.md) and
+[the roadmap](../../docs/roadmap.md).
