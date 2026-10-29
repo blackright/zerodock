@@ -2,6 +2,7 @@
 
 import argparse
 import sys
+
 from zerodock import __version__
 from zerodock.gateway.server import run_server
 
@@ -12,9 +13,7 @@ def build_parser() -> argparse.ArgumentParser:
         prog="zerodock",
         description="ZeroDock - Ultra-lightweight local serverless execution engine.",
     )
-    parser.add_argument(
-        "-v", "--version", action="version", version=f"ZeroDock {__version__}"
-    )
+    parser.add_argument("-v", "--version", action="version", version=f"ZeroDock {__version__}")
 
     subparsers = parser.add_subparsers(dest="command", help="Available subcommands")
 
@@ -44,6 +43,11 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["debug", "info", "warning", "error"],
         help="Logging level verbosity",
     )
+    dev_parser.add_argument(
+        "--reload",
+        action="store_true",
+        help="Observe handler changes in-process without restarting the gateway",
+    )
 
     return parser
 
@@ -59,6 +63,7 @@ def main() -> None:
         host = getattr(args, "host", None)
         port = getattr(args, "port", None)
         log_level = getattr(args, "log_level", None)
+        reload = getattr(args, "reload", False)
 
         try:
             run_server(
@@ -66,6 +71,7 @@ def main() -> None:
                 host=host,
                 port=port,
                 log_level=log_level,
+                reload=reload,
             )
         except Exception as exc:
             print(f"[ZeroDock Error] {exc}", file=sys.stderr)

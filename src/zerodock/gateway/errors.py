@@ -2,6 +2,7 @@
 
 import sys
 import traceback
+
 from starlette.responses import JSONResponse
 
 
@@ -44,7 +45,8 @@ def format_timeout_response(timeout_seconds: int, request_id: str = "") -> JSONR
         JSONResponse with HTTP 504 and diagnostic details.
     """
     print(
-        f"\n[ZeroDock TIMEOUT] Function exceeded limit of {timeout_seconds}s (Request ID: {request_id})",
+        f"\n[ZeroDock TIMEOUT] Function exceeded limit of {timeout_seconds}s "
+        f"(Request ID: {request_id})",
         file=sys.stderr,
     )
     return JSONResponse(

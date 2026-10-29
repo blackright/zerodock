@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from typing import Dict, List, Literal
+
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -9,7 +10,9 @@ class GatewayConfig(BaseModel):
     """Network and runtime configuration for the local gateway."""
 
     host: str = Field(default="127.0.0.1", description="Bind IP address")
-    port: int = Field(default=8080, ge=1024, le=65535, description="Port number between 1024 and 65535")
+    port: int = Field(
+        default=8080, ge=1024, le=65535, description="Port number between 1024 and 65535"
+    )
     log_level: Literal["debug", "info", "warning", "error"] = Field(
         default="info", description="Logging verbosity"
     )
@@ -63,7 +66,6 @@ class ServerlessConfig(BaseModel):
     def normalize_route_keys(cls, routes: Dict[str, RouteDefinition]) -> Dict[str, RouteDefinition]:
         normalized = {}
         for path, defn in routes.items():
-            # Clean up route path: ensure single leading slash and no trailing slash (unless root "/")
             clean_path = path.strip()
             if not clean_path.startswith("/"):
                 clean_path = f"/{clean_path}"

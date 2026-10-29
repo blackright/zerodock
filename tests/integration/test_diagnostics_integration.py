@@ -1,8 +1,10 @@
 """Integration tests for route diagnostics and 404 suggestions."""
 
 from pathlib import Path
-import pytest
+
 import httpx
+import pytest
+
 from zerodock.config.parser import load_config
 from zerodock.gateway.app import create_app
 

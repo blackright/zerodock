@@ -1,6 +1,7 @@
 """Unit tests for handler response normalization into HTTP responses."""
 
 from starlette.responses import Response
+
 from zerodock.gateway.response import normalize_response
 
 

@@ -2,6 +2,7 @@
 
 import json
 from typing import Any
+
 from starlette.responses import JSONResponse, Response
 
 
@@ -47,9 +48,7 @@ def normalize_response(result: Any) -> Response:
             serialized_body = json.dumps(body)
             if "content-type" not in {k.lower(): v for k, v in headers.items()}:
                 headers["Content-Type"] = "application/json"
-            return Response(
-                content=serialized_body, status_code=status_code, headers=headers
-            )
+            return Response(content=serialized_body, status_code=status_code, headers=headers)
 
         # Body is string or bytes
         body_bytes = body.encode("utf-8") if isinstance(body, str) else bytes(body)
@@ -61,9 +60,7 @@ def normalize_response(result: Any) -> Response:
 
     # Handle plain string
     if isinstance(result, str):
-        return Response(
-            content=result, status_code=200, media_type="text/plain; charset=utf-8"
-        )
+        return Response(content=result, status_code=200, media_type="text/plain; charset=utf-8")
 
     # Fallback to string representation
     return Response(content=str(result), status_code=200)

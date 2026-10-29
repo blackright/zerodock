@@ -14,8 +14,8 @@ try:
 except PackageNotFoundError:
     # In an uninstalled/development checkout, resolve version dynamically from pyproject.toml
     try:
-        from pathlib import Path
         import re
+        from pathlib import Path
 
         _pyproject = Path(__file__).resolve().parent.parent.parent / "pyproject.toml"
         if _pyproject.exists():
@@ -42,14 +42,18 @@ def __getattr__(name: str) -> Any:
     """Lazy-load public symbols to preserve sub-millisecond module import times."""
     if name == "create_app":
         from zerodock.gateway.app import create_app
+
         return create_app
     if name == "run_server":
         from zerodock.gateway.server import run_server
+
         return run_server
     if name in {"GatewayConfig", "RouteDefinition", "ServerlessConfig"}:
         import zerodock.config.models as models
+
         return getattr(models, name)
     if name in {"InvocationContext", "InvocationResult"}:
         import zerodock.engine.context as context
+
         return getattr(context, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

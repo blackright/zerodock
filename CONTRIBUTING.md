@@ -63,7 +63,7 @@ Check our [GitHub Issues](https://github.com/blackright/zerodock/issues) tracker
 ## 📋 Architectural Guidelines
 
 ZeroDock follows strict constitutional principles:
-1. **Speed & Featherweight Footprint**: The engine MUST boot in <100ms and use <50MB of RAM. Do not introduce heavy background daemons or Docker dependencies.
+1. **Speed & Featherweight Footprint**: The engine MUST boot in <100ms and keep baseline actual listening-server idle RSS below 60 decimal MB (60,000,000 bytes); <50MB remains an optimization target. Follow the constitution's one-route/small-handler workload, three fresh processes per reload mode, and current-RSS sampling protocol. Report the tested environment; do not promise the baseline limit for arbitrary handler imports. Do not introduce heavy background daemons or Docker dependencies.
 2. **Native Execution**: Code runs directly in Python via `importlib`. Breakpoints (`breakpoint()`) must always work.
 3. **Decoupled Plugins**: Event transformers and mock services should be isolated modules in `src/zerodock/` with standalone tests.
 4. **Test-Driven Quality**: Every new feature must include unit tests and authentic payload fixtures in `tests/`.

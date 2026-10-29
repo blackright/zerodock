@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from typing import Union
+
 import yaml
 from pydantic import ValidationError
 
@@ -10,6 +11,7 @@ from zerodock.config.models import ServerlessConfig
 
 class ConfigurationError(Exception):
     """Raised when serverless-local.yaml is missing, malformed, or invalid."""
+
     pass
 
 
@@ -44,7 +46,8 @@ def load_config(config_path: Union[str, Path] = "serverless-local.yaml") -> Serv
 
     if not isinstance(parsed_yaml, dict):
         raise ConfigurationError(
-            f"Invalid configuration root in {path.name}: expected mapping, got {type(parsed_yaml).__name__}"
+            f"Invalid configuration root in {path.name}: "
+            f"expected mapping, got {type(parsed_yaml).__name__}"
         )
 
     try:

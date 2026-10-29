@@ -19,7 +19,6 @@ else:
         tomllib = None  # type: ignore[assignment]
 
 
-
 def test_version_is_valid_semver() -> None:
     """zerodock.__version__ must be a valid semantic version string."""
     version = zerodock.__version__
@@ -42,7 +41,9 @@ def test_version_fallback_on_package_not_found() -> None:
     expected_version = _get_pyproject_version()
     with patch("importlib.metadata.version", side_effect=PackageNotFoundError):
         import importlib
+
         import zerodock as zd
+
         importlib.reload(zd)
         assert zd.__version__ == expected_version
 

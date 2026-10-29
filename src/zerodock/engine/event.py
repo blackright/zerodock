@@ -3,8 +3,9 @@
 import base64
 import time
 import uuid
-from starlette.requests import Request
 from typing import Any, Dict
+
+from starlette.requests import Request
 
 
 async def build_invocation_event(request: Request, route_key: str = "") -> Dict[str, Any]:

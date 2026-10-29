@@ -2,6 +2,7 @@
 
 import pytest
 from starlette.requests import Request
+
 from zerodock.engine.event import build_invocation_event
 
 
@@ -9,7 +10,7 @@ def create_mock_request(
     method: str = "GET",
     path: str = "/api/hello",
     query_string: str = "name=Alice&tag=test",
-    headers: dict = None,
+    headers: dict | None = None,
     body: bytes = b"",
 ) -> Request:
     """Helper to synthesize Starlette Request objects."""
