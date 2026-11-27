@@ -50,6 +50,12 @@ class RouteDefinition(BaseModel):
         return name
 
 
+class StorageConfig(BaseModel):
+    """Optional local object storage mock configuration."""
+
+    buckets: List[str] = Field(default_factory=list, description="Simulated local S3 bucket names")
+
+
 class ServerlessConfig(BaseModel):
     """Top-level configuration schema for serverless-local.yaml."""
 
@@ -59,6 +65,9 @@ class ServerlessConfig(BaseModel):
     )
     routes: Dict[str, RouteDefinition] = Field(
         ..., min_length=1, description="Mapping of route paths to execution definitions"
+    )
+    storage: StorageConfig = Field(
+        default_factory=StorageConfig, description="Optional local object storage settings"
     )
 
     @field_validator("routes")
