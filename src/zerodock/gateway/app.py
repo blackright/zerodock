@@ -20,6 +20,7 @@ from zerodock.engine.loader import invoke_handler, load_handler
 from zerodock.engine.watcher import HandlerWatcher
 from zerodock.gateway.errors import format_error_response, format_timeout_response
 from zerodock.gateway.response import normalize_response
+from zerodock.plugins.storage import LocalStorageMock
 
 logger = logging.getLogger("uvicorn.error.zerodock.lifecycle")
 
@@ -66,6 +67,13 @@ def create_app(config: Optional[ServerlessConfig] = None, *, reload: bool = Fals
     app = FastAPI(title="ZeroDock Gateway", version="0.1.0", lifespan=lifespan)
     app.state.config = config
     app.state.handler_watcher = None
+    if config.storage.buckets:
+        storage = LocalStorageMock()
+        for bucket in config.storage.buckets:
+            storage.ensure_bucket(bucket)
+        app.state.storage = storage
+    else:
+        app.state.storage = None
 
     # Register each configured route
     for route_path, route_defn in config.routes.items():
