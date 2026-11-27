@@ -15,6 +15,7 @@ class InvocationContext:
     memory_limit_in_mb: int = 128
     started_at: float = field(default_factory=time.monotonic)
     timeout_seconds: int = 30
+    client_context: Dict[str, Any] = field(default_factory=dict)
 
     def get_remaining_time_in_millis(self) -> int:
         """Returns the number of milliseconds remaining before execution timeout."""

@@ -8,7 +8,11 @@ from typing import Any, Dict
 from starlette.requests import Request
 
 
-async def build_invocation_event(request: Request, route_key: str = "") -> Dict[str, Any]:
+async def build_invocation_event(
+    request: Request,
+    route_key: str = "",
+    stage_variables: Dict[str, str] | None = None,
+) -> Dict[str, Any]:
     """Converts a Starlette/FastAPI Request into an AWS Lambda API Gateway v2 event.
 
     Args:
@@ -65,4 +69,5 @@ async def build_invocation_event(request: Request, route_key: str = "") -> Dict[
         },
         "body": body_str,
         "isBase64Encoded": is_base64,
+        "stageVariables": dict(stage_variables) if stage_variables else {},
     }
