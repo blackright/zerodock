@@ -14,6 +14,7 @@ from starlette.responses import JSONResponse, Response
 
 from zerodock.config.models import RouteDefinition, ServerlessConfig
 from zerodock.config.parser import load_config
+from zerodock.config.secrets import inject_local_env, load_local_env
 from zerodock.engine.context import InvocationContext
 from zerodock.engine.event import build_invocation_event
 from zerodock.engine.loader import invoke_handler, load_handler
@@ -67,6 +68,7 @@ def create_app(config: Optional[ServerlessConfig] = None, *, reload: bool = Fals
     app = FastAPI(title="ZeroDock Gateway", version="0.1.0", lifespan=lifespan)
     app.state.config = config
     app.state.handler_watcher = None
+    app.state.local_env = inject_local_env(load_local_env())
     if config.storage.buckets:
         storage = LocalStorageMock()
         for bucket in config.storage.buckets:
@@ -88,6 +90,7 @@ def create_app(config: Optional[ServerlessConfig] = None, *, reload: bool = Fals
                     context = InvocationContext(
                         function_name=r_defn.handler,
                         timeout_seconds=r_defn.timeout_seconds,
+                        client_context=dict(app.state.local_env),
                     )
                     req_id = context.request_id
 
@@ -96,7 +99,11 @@ def create_app(config: Optional[ServerlessConfig] = None, *, reload: bool = Fals
 
                     # 3. Build the AWS-compatible event dictionary
                     route_key = f"{request.method} {r_path}"
-                    event = await build_invocation_event(request, route_key=route_key)
+                    event = await build_invocation_event(
+                        request,
+                        route_key=route_key,
+                        stage_variables=app.state.local_env,
+                    )
 
                     # 4. Invoke the handler (with timeout enforcement)
                     invocation_task = invoke_handler(handler_fn, event, context)
