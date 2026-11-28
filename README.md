@@ -13,11 +13,14 @@ functions in your local Python process and returns their results over HTTP.
 
 - A local HTTP gateway with synchronous and asynchronous Python handlers.
 - A configuration file for routes, methods, entrypoints, and request timeouts.
-- Opt-in, in-process reload of configured handler source files.
+- Opt-in, in-process hot reload (`--reload`) of configured handler source files.
+- Automatic `.env.local` / `.env` secrets loading (`os.environ`, `event["stageVariables"]`, and `context.client_context`).
+- Built-in local object storage mock (`LocalStorageMock`, `.zerodock/buckets/`, and optional `storage.buckets` config).
+- Rich Terminal UI startup route table and live latency monitor (with `--plain` / `--no-color` fallback).
 - Native Python debugging and structured development error responses.
 
 ZeroDock is a local development tool, not a complete cloud emulator or a sandbox.
-Cloud-specific adapters, service mocks, and other languages are future work.
+Additional cloud adapters and other languages are future work.
 See the [roadmap](docs/roadmap.md) and [security notes](docs/security.md).
 
 ## Installation and release status
