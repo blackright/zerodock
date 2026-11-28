@@ -3,6 +3,7 @@
 import asyncio
 import inspect
 import logging
+import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -12,6 +13,7 @@ from fastapi import FastAPI, Request
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.responses import JSONResponse, Response
 
+from zerodock.cli_ui import render_request_log
 from zerodock.config.models import RouteDefinition, ServerlessConfig
 from zerodock.config.parser import load_config
 from zerodock.config.secrets import inject_local_env, load_local_env
@@ -26,7 +28,13 @@ from zerodock.plugins.storage import LocalStorageMock
 logger = logging.getLogger("uvicorn.error.zerodock.lifecycle")
 
 
-def create_app(config: Optional[ServerlessConfig] = None, *, reload: bool = False) -> FastAPI:
+def create_app(
+    config: Optional[ServerlessConfig] = None,
+    *,
+    reload: bool = False,
+    enable_request_log: bool = False,
+    plain_ui: bool = False,
+) -> FastAPI:
     """Builds and configures the FastAPI gateway application.
 
     Args:
@@ -69,6 +77,23 @@ def create_app(config: Optional[ServerlessConfig] = None, *, reload: bool = Fals
     app.state.config = config
     app.state.handler_watcher = None
     app.state.local_env = inject_local_env(load_local_env())
+
+    if enable_request_log:
+
+        @app.middleware("http")
+        async def _request_timing_middleware(request: Request, call_next) -> Response:
+            started = time.perf_counter_ns()
+            response: Response = await call_next(request)
+            duration_ms = (time.perf_counter_ns() - started) / 1e6
+            render_request_log(
+                request.method,
+                request.url.path,
+                response.status_code,
+                duration_ms,
+                plain=plain_ui,
+            )
+            return response
+
     if config.storage.buckets:
         storage = LocalStorageMock()
         for bucket in config.storage.buckets:
