@@ -13,6 +13,7 @@ from fastapi import FastAPI, Request
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.responses import JSONResponse, Response
 
+from zerodock import __version__
 from zerodock.cli_ui import render_request_log
 from zerodock.config.models import RouteDefinition, ServerlessConfig
 from zerodock.config.parser import load_config
@@ -73,7 +74,7 @@ def create_app(
         else:
             await watcher.stop()
 
-    app = FastAPI(title="ZeroDock Gateway", version="0.1.0", lifespan=lifespan)
+    app = FastAPI(title="ZeroDock Gateway", version=__version__, lifespan=lifespan)
     app.state.config = config
     app.state.handler_watcher = None
     app.state.local_env = inject_local_env(load_local_env())

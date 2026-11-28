@@ -49,7 +49,7 @@ zerodock = "zerodock.cli:main"
 
 [tool.poetry]
 name = "zerodock"
-version = "0.1.0"
+version = "0.2.0"
 description = "Zero-dependency, ultra-lightweight local execution engine for serverless cloud architectures."
 authors = ["ZeroDock Contributors"]
 readme = "README.md"
