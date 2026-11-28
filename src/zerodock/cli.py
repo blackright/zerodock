@@ -48,6 +48,13 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Observe handler changes in-process without restarting the gateway",
     )
+    dev_parser.add_argument(
+        "--plain",
+        "--no-color",
+        dest="plain",
+        action="store_true",
+        help="Disable ANSI colors and render plain-text output for headless/CI environments",
+    )
 
     return parser
 
@@ -64,15 +71,19 @@ def main() -> None:
         port = getattr(args, "port", None)
         log_level = getattr(args, "log_level", None)
         reload = getattr(args, "reload", False)
+        plain = getattr(args, "plain", False)
 
         try:
-            run_server(
-                config_path=config_path,
-                host=host,
-                port=port,
-                log_level=log_level,
-                reload=reload,
-            )
+            kwargs: dict[str, object] = {
+                "config_path": config_path,
+                "host": host,
+                "port": port,
+                "log_level": log_level,
+                "reload": reload,
+            }
+            if plain:
+                kwargs["plain"] = True
+            run_server(**kwargs)  # type: ignore[arg-type]
         except Exception as exc:
             print(f"[ZeroDock Error] {exc}", file=sys.stderr)
             sys.exit(1)

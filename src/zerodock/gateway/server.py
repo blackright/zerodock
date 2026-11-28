@@ -4,6 +4,7 @@ from typing import Optional
 
 import uvicorn
 
+from zerodock.cli_ui import render_startup_banner
 from zerodock.config.parser import load_config
 from zerodock.gateway.app import create_app
 
@@ -15,6 +16,7 @@ def run_server(
     log_level: Optional[str] = None,
     *,
     reload: bool = False,
+    plain: bool = False,
 ) -> None:
     """Boots the ZeroDock local serverless HTTP gateway.
 
@@ -33,11 +35,7 @@ def run_server(
 
     app = create_app(config, reload=reload)
 
-    print(f"[ZeroDock] Booting local gateway on http://{bind_host}:{bind_port}")
-    print(f"[ZeroDock] Loaded {len(config.routes)} registered route(s):")
-    for path, route in config.routes.items():
-        methods_str = ", ".join(route.methods)
-        print(f"  - [{methods_str}] {path} -> {route.file.name}:{route.handler}")
+    render_startup_banner(config, plain=plain)
 
     uvicorn.run(
         app,
